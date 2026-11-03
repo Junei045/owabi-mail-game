@@ -21,6 +21,7 @@ color-scheme:light;
 --danger:#B1231B; --danger-bg:#FCE8E6;
 --warn:#7D5200; --warn-bg:#FFF1CF;
 --info:#1C557F; --info-bg:#E3EEF6;
+--mailbtn:#1F5FAE; --mailbtn-ink:#FFFFFF;
 --f-display:"Hiragino Maru Gothic ProN","Zen Maru Gothic","BIZ UDPGothic",sans-serif;
 --f-body:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
 --base:20px;
@@ -32,6 +33,7 @@ color-scheme:light;
 --danger:#FF8C82; --danger-bg:#3A1613;
 --warn:#F1C25A; --warn-bg:#33260A;
 --info:#8DC4EC; --info-bg:#132838;
+--mailbtn:#6FA6E6; --mailbtn-ink:#08121C;
 color-scheme:dark;
 }
 }
@@ -41,6 +43,7 @@ color-scheme:dark;
 --danger:#FF8C82; --danger-bg:#3A1613;
 --warn:#F1C25A; --warn-bg:#33260A;
 --info:#8DC4EC; --info-bg:#132838;
+--mailbtn:#6FA6E6; --mailbtn-ink:#08121C;
 color-scheme:dark;
 }
 html.big{ --base:24px;}
@@ -55,7 +58,7 @@ p{margin:0}
 [hidden]{display:none!important}
 
 .top{display:flex;flex-direction:column;gap:8px}
-.top.lead{color:var(--muted)}
+.top .lead{color:var(--muted)}
 .size{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85em;color:var(--muted)}
 .size button{font:inherit;font-weight:700;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 .size button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
@@ -66,12 +69,19 @@ p{margin:0}
 .panel{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:22px 18px;display:flex;flex-direction:column;gap:18px}
 .progress{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
 .bar{flex:1;height:10px;border-radius:5px;background:var(--accent-soft);overflow:hidden}
-.bar i{display:block;height:100%;background:var(--accent);transition:width.25s}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
 .q{font-family:var(--f-display);font-size:1.3em;font-weight:700;line-height:1.55}
 .hint{color:var(--muted);font-size:.9em}
 .answers{display:flex;flex-direction:column;gap:12px}
 .answers button{font:inherit;font-weight:700;font-size:1.15em;min-height:68px;border-radius:14px;cursor:pointer;border:3px solid var(--accent);background:var(--surface);color:var(--ink);padding:10px 14px}
 .answers button:disabled{opacity:.55;cursor:default}
+/* 回答後の印。正解の選択肢と、自分が選んだ選択肢は薄くせずに残す。
+   色だけに頼らず、ボタンの上に「○ 正解」などの文字も付ける。 */
+.answers button.is-correct:disabled{opacity:1;border-color:var(--info);background:var(--info-bg)}
+.answers button.is-wrong:disabled{opacity:1;border-color:var(--danger);background:var(--danger-bg)}
+.answers .mark{display:block;font-size:.75em;line-height:1.4;margin-bottom:2px}
+.answers .is-correct .mark{color:var(--info)}
+.answers .is-wrong .mark{color:var(--danger)}
 .bigbtn{font:inherit;font-weight:700;font-size:1.15em;min-height:68px;border-radius:14px;cursor:pointer;border:3px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:10px 18px}
 .restart{font:inherit;font-weight:700;min-height:60px;border-radius:14px;border:3px solid var(--accent);background:var(--surface);color:var(--ink);cursor:pointer;padding:8px 16px}
 
@@ -86,9 +96,18 @@ p{margin:0}
 .steps li::marker{font-weight:700;color:var(--accent)}
 
 .mail{border:2px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
-.mail.subj{font-weight:700;font-family:var(--f-display);font-size:1.05em}
-.mail.from{font-size:.85em;color:var(--muted)}
-.mail.lk{color:var(--info);text-decoration:underline;overflow-wrap:anywhere}
+.mail .subj{font-weight:700;font-family:var(--f-display);font-size:1.05em}
+.mail .from{font-size:.85em;color:var(--muted)}
+
+/* メールの中の「ボタン」の見本。
+   見た目は本物のメールのボタンに似せていますが、押しても・触っても何も起きません。
+   ・pointer-events:none で、クリックもホバーも受け付けない
+   ・ボタン要素ではなく span なので、Tabキーでも選ばれない
+   ・文字選択や長押しメニューも出ないようにしている */
+.mail .btnrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;cursor:default}
+.mail .fakebtn{display:inline-block;background:var(--mailbtn);color:var(--mailbtn-ink);font-weight:700;font-size:1em;line-height:1.4;padding:12px 24px;border-radius:8px;box-shadow:0 2px 0 rgba(0,0,0,.2);pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.mail .btnnote{font-size:.75em;color:var(--muted)}
+
 .tag{display:inline-block;font-size:.8em;font-weight:700;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:2px 12px;align-self:flex-start}
 .fb{border-radius:12px;padding:14px 16px;border:3px solid;display:flex;flex-direction:column;gap:8px}
 .fb.ok{background:var(--info-bg);border-color:var(--info)}
@@ -96,9 +115,9 @@ p{margin:0}
 .note{font-size:.85em;color:var(--muted)}
 
 .axis{display:flex;flex-direction:column;gap:6px}
-.axis.ahead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
-.axis.aname{font-weight:700}
-.axis.acount{font-family:var(--f-display);font-size:1.3em;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.axis .ahead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.axis .aname{font-weight:700}
+.axis .acount{font-family:var(--f-display);font-size:1.3em;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
 .pillars{margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:12px}
 .pillars li::marker{font-weight:700;color:var(--accent)}
 footer{font-size:.8em;color:var(--muted);text-align:center}
@@ -123,6 +142,15 @@ return e;
 function esc(s){
 return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});
 }
+/* 配列をランダムに並べ替えたコピーを返す（Fisher–Yates法）。元の配列は変えない。 */
+function shuffled(arr){
+var a=arr.slice();
+for(var i=a.length-1;i>0;i--){
+var j=Math.floor(Math.random()*(i+1));
+var t=a[i]; a[i]=a[j]; a[j]=t;
+}
+return a;
+}
 
 var app=document.getElementById('app');
 var root=document.documentElement;
@@ -141,7 +169,7 @@ app.appendChild(header);
 
 var rule=el('div','rule');
 rule.appendChild(el('strong',null,'まず、これだけは守りましょう'));
-rule.appendChild(el('p',null,'メールの中のボタンやリンク（青い文字）は<b>押さない</b>。メールに書かれた電話番号にも<b>かけない</b>。'));
+rule.appendChild(el('p',null,'メールの中のボタンやリンクは<b>押さない</b>。メールに書かれた電話番号にも<b>かけない</b>。'));
 app.appendChild(rule);
 
 var scrTitle=el('section','panel'); app.appendChild(scrTitle);
@@ -167,6 +195,13 @@ szB.onclick=function(){setSize(true);};
 件数表示（全○件）・進行表示・採点の集計は、配列の長さに
 自動で追従します。
 
+buttons は、メールの中に表示する「ボタン」の文字です。
+ボタンが2つあるメールは、2つ書きます。
+（見た目だけのボタンで、押しても何も起きません）
+
+choices は、画面に出すときに毎回ランダムに並べ替えます。
+ここでの並び順は気にせず書いて大丈夫です。
+
 choices の ax は、採点3軸の内訳です。左から
 [0] 危険に気づけたか
 [1] リンクを踏まずに止まれたか
@@ -179,69 +214,69 @@ choices の ax は、採点3軸の内訳です。左から
 var CASES=[
 {tag:'便乗の手口 その1', subj:'【重要】パスワード再設定のお願い', from:'○○サービス サポート（名乗り）',
 body:'いつもご利用いただきありがとうございます。\n先日の個人情報流出の件で、セキュリティ強化のため、パスワードの再設定をお願いしております。\n24時間以内に再設定しないと、アカウントが利用できなくなります。\n下のボタンからログインして、再設定してください。',
-link:'▶ パスワードを再設定する（ボタンの見本・押せません）',
+buttons:['パスワードを再設定する'],
 point:'急がせる言葉と、ログインの求めがあったら、まず疑います。本当に必要なら、公式アプリや公式ホームページにもお知らせが出ているはずです。',
 choices:[
 {t:'ボタンからログインして、パスワードを再設定する', ok:false, ax:[false,false,false], fb:'メールの中のボタンからログインさせるのは、パスワードを盗むための手口です。「24時間以内」と急がせるのも、決まったやり方です。'},
-{t:'ボタンは押さず、自分で公式ホームページや公式アプリを開いて確かめる', ok:true, ax:[true,true,true], fb:'その通りです。再設定が必要かどうかは、メールの中からではなく、自分で開いた公式の場所で確かめます。'},
-{t:'心配なので、メールに返信して本物か聞く', ok:false, ax:[true,true,false], fb:'にせメールに返信しても、本物かどうかは分かりません。返信先も詐欺グループにつながっていることがあります。'}
+{t:'ボタンは押さず、公式アプリを自分で開いて確かめる', ok:true, ax:[true,true,true], fb:'その通りです。再設定が必要かどうかは、メールの中からではなく、自分で開いた公式の場所で確かめます。'},
+{t:'本物かどうか、念のためメールに返信して聞く', ok:false, ax:[true,true,false], fb:'にせメールに返信しても、本物かどうかは分かりません。返信先も詐欺グループにつながっていることがあります。'}
 ]},
 {tag:'便乗の手口 その2', subj:'お詫びとして防災セットを無償でお届けします', from:'○○ストア お客様窓口（名乗り）',
 body:'このたびの情報流出では、ご迷惑をおかけし申し訳ございません。\nお詫びとして、防災セットを無償でお届けします。\n送料500円のみご負担ください。下のページで、送り先とカード情報をご入力ください。',
-link:'▶ お届け先とカード情報を入力する（ページの見本・押せません）',
+buttons:['お届け先とカード情報を入力する'],
 point:'お金がらみの話（無償・返金・送料）で個人情報やカード情報を求められたら、にせメールを疑います。',
 choices:[
-{t:'送料500円だけならと、カード情報を入力する', ok:false, ax:[false,false,false], fb:'「無償」「送料だけ」で油断させて、カード情報を盗む手口です。金額が小さくても、カード情報そのものが狙われています。'},
-{t:'入力せず、そのまま閉じる。気になる場合は会社の公式ホームページで確かめる', ok:true, ax:[true,true,true], fb:'その通りです。本物のお詫びメールが、メールからカード情報を入力させることはまずありません。'},
-{t:'送り先の住所と電話番号だけ入力する', ok:false, ax:[false,false,false], fb:'住所や電話番号も大切な個人情報です。メール経由のフォームには、個人情報を入れないのが鉄則です。'}
+{t:'送料500円だけなら、とカード情報を入力する', ok:false, ax:[false,false,false], fb:'「無償」「送料だけ」で油断させて、カード情報を盗む手口です。金額が小さくても、カード情報そのものが狙われています。'},
+{t:'入力せずに閉じ、気になれば公式サイトで確かめる', ok:true, ax:[true,true,true], fb:'その通りです。本物のお詫びメールが、メールからカード情報を入力させることはまずありません。'},
+{t:'カード情報は入れず、住所と電話番号だけ入力する', ok:false, ax:[false,false,false], fb:'住所や電話番号も大切な個人情報です。メール経由のフォームには、個人情報を入れないのが鉄則です。'}
 ]},
 {tag:'便乗の手口 その3', subj:'登録情報の確認のお願い', from:'○○サービス 事務局（名乗り）',
 body:'情報流出への対応として、登録情報が正しいか確認をお願いしております。\n下のフォームで、お名前・ご住所・お電話番号をご確認のうえ、送信してください。\n確認が済んでいないお客様は、サービスのご利用を制限する場合がございます。',
-link:'▶ 登録情報を確認する（フォームの見本・押せません）',
+buttons:['登録情報を確認する'],
 point:'「確認のため」と言われても、メール経由で個人情報を出さないこと。電話をするときも、メールの中の番号は使いません。',
 choices:[
 {t:'フォームに住所や電話番号を入力して送信する', ok:false, ax:[false,false,false], fb:'流出の「確認」に見せかけて、住所や電話番号を集める手口です。集めた情報は、次の詐欺に使われるおそれがあります。'},
-{t:'フォームは使わず、自分で公式ホームページを開いて、同じお知らせがあるか確かめる', ok:true, ax:[true,true,true], fb:'その通りです。確認が必要なら、メール経由ではなく、自分で開いた公式の場所から行います。'},
-{t:'メールに書かれた電話番号にかけて確かめる', ok:false, ax:[true,true,false], fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、カードの裏や請求書など、いつもの番号でかけます。'}
+{t:'公式サイトを自分で開き、同じお知らせがあるか見る', ok:true, ax:[true,true,true], fb:'その通りです。確認が必要なら、メール経由ではなく、自分で開いた公式の場所から行います。'},
+{t:'メールに書かれた電話番号にかけて、本物か確かめる', ok:false, ax:[true,true,false], fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、カードの裏や請求書など、いつもの番号でかけます。'}
 ]},
 {tag:'便乗の手口 その4', subj:'予約情報の確認とお詫びのお知らせ', from:'日本航空 カスタマーサポート（名乗り）',
 note:'これは実際に確認された偽メールではありません。2026年10月にJALが発表した「予約情報が外部から見られた可能性」と、その注意喚起をもとにした想定パターンです。メールに出てくる予約内容は、訓練用に作った架空のものです。',
 body:'○○ ○○ 様\n\nいつもご利用いただきありがとうございます。\nこのたび、弊社の旅客サービスシステムへの不正アクセスにより、お客様のご予約情報が外部から見られた可能性があることが判明いたしました。深くお詫び申し上げます。\n\n【お客様のご予約】\n予約番号：ABC123\n搭乗日：11月15日\n搭乗区間：東京（羽田）→ 福岡\n\nお客様のご予約に間違いがないか、下のボタンからご確認ください。ご都合が変わった場合は「返金手続きはこちら」からお手続きいただけます。',
-link:'▶ 予約の確認はこちら／返金手続きはこちら（ボタンの見本・押せません）',
+buttons:['予約の確認はこちら','返金手続きはこちら'],
 point:'メールに書かれた予約番号や搭乗日が正しくても、本物の証拠にはなりません。流出した本当の予約情報が、そのまま使われている場合があるからです。確認は、メールの中のリンクや電話番号を使わず、自分で公式の場所へ行くのが鉄則です。',
 choices:[
-{t:'ボタン（リンク）を押して、予約を確認する', ok:false, ax:[false,false,false], fb:'このメールは、流出した本当の予約情報を使って作られているかもしれません。予約内容が正しく書かれていても、本物だという証拠にはなりません。ボタンから入ると、にせのページでログイン情報などを盗まれるおそれがあります。'},
-{t:'メールに書かれた電話番号に問い合わせる', ok:false, ax:[true,true,false], fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、公式ホームページや予約の控えなど、いつもの連絡先で行います。'},
-{t:'リンクを押さず、JALの公式アプリや、自分でブックマークした公式サイトから予約を確認する', ok:true, ax:[true,true,true], fb:'その通りです。予約の確認は、メールの中からではなく、自分で開いた公式アプリや公式ホームページから行います。内容が正しく書かれたメールほど、本物らしく見えるので注意が必要です。'}
+{t:'ボタンを押して、予約内容が正しいか確認する', ok:false, ax:[false,false,false], fb:'このメールは、流出した本当の予約情報を使って作られているかもしれません。予約内容が正しく書かれていても、本物だという証拠にはなりません。ボタンから入ると、にせのページでログイン情報などを盗まれるおそれがあります。'},
+{t:'メールに書かれた電話番号に、本物か問い合わせる', ok:false, ax:[true,true,false], fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、公式ホームページや予約の控えなど、いつもの連絡先で行います。'},
+{t:'JALの公式アプリを自分で開き、予約を確認する', ok:true, ax:[true,true,true], fb:'その通りです。予約の確認は、メールの中からではなく、自分で開いた公式アプリや公式ホームページから行います。内容が正しく書かれたメールほど、本物らしく見えるので注意が必要です。'}
 ]},
 {tag:'便乗の手口 その5', subj:'MUJIアプリに関するお詫びとご登録情報の確認のお願い', from:'無印良品（MUJI）お客様センター（名乗り）',
 note:'これは実際に確認された偽メールではありません。2026年10月に良品計画が発表した「MUJIアプリへの不正アクセスで、メールアドレス・生年月日・性別が最大約2,726万件漏れた可能性」をもとにした想定パターンです。漏れたかどうかは確定ではなく、あくまで可能性の発表です。',
 body:'いつも無印良品をご利用いただきありがとうございます。\nこのたび、公式アプリ「MUJIアプリ」への不正アクセスにより、お客様のメールアドレス・生年月日・性別が外部に漏れた可能性のあることが判明いたしました。深くお詫び申し上げます。\n\nつきましては、ご本人様確認のため、ご登録情報の確認をお願いしております。下のボタンから、ご氏名・ご住所・クレジットカード情報をご入力ください。',
-link:'▶ 登録情報の確認はこちら（ボタンの見本・押せません）',
+buttons:['登録情報の確認はこちら'],
 point:'今回、漏れた可能性があると発表されたのは、メールアドレス・生年月日・性別だけです。漏れていないはずの氏名・住所・クレジットカード情報を求めること自体が、見抜く手がかりになります。生年月日など、漏れた情報が合っていても、本物の証拠にはなりません。',
 choices:[
-{t:'ボタンから、氏名・住所・クレジットカード情報を入力する', ok:false, ax:[false,false,false], fb:'発表で漏れた可能性があるとされたのは、メールアドレス・生年月日・性別だけです。漏れていないはずの氏名・住所・カード情報を求めること自体がおかしいのです。入力すると、その情報がそのまま盗まれてしまいます。'},
-{t:'ボタンは押さず、公式アプリ「MUJIアプリ」や公式ホームページを自分で開いて確かめる', ok:true, ax:[true,true,true], fb:'その通りです。確認が必要かどうかは、メールの中からではなく、自分で開いた公式アプリや公式ホームページで確かめます。'},
-{t:'心配なので、メールに返信して本物か聞く', ok:false, ax:[true,true,false], fb:'にせメールに返信しても、本物かどうかは分かりません。返信先も詐欺グループにつながっていることがあります。'}
+{t:'ボタンから、氏名・住所・カード情報を入力する', ok:false, ax:[false,false,false], fb:'発表で漏れた可能性があるとされたのは、メールアドレス・生年月日・性別だけです。漏れていないはずの氏名・住所・カード情報を求めること自体がおかしいのです。入力すると、その情報がそのまま盗まれてしまいます。'},
+{t:'MUJIアプリを自分で開いて、お知らせを確かめる', ok:true, ax:[true,true,true], fb:'その通りです。確認が必要かどうかは、メールの中からではなく、自分で開いた公式アプリや公式ホームページで確かめます。'},
+{t:'心配なので、本物かどうかメールに返信して聞く', ok:false, ax:[true,true,false], fb:'にせメールに返信しても、本物かどうかは分かりません。返信先も詐欺グループにつながっていることがあります。'}
 ]},
 {tag:'便乗の手口 その6', subj:'【緊急】あなたの情報がダークウェブに漏洩しました', from:'情報漏洩監視センター（名乗り）',
 note:'これは実際に確認された偽メールではありません。「流出したか調べるサイト自体が、詐欺の入り口になる」という警告をもとにした想定パターンです。',
 body:'あなたのメールアドレスとパスワードが、ダークウェブ上に漏洩していることが確認されました。\nこのまま放置すると、アカウントを悪用されるおそれがあります。\n下のボタンから、あなたの情報が漏れているか、今すぐ無料で確認できます。確認には、メールアドレスとパスワードの入力が必要です。',
-link:'▶ 漏洩しているか今すぐ確認する（ボタンの見本・押せません）',
+buttons:['漏洩しているか今すぐ確認する'],
 point:'「調べる」行為そのものが、入口になります。見知らぬサイトにメールアドレスやパスワードを入力すると、その瞬間に自分から情報を渡してしまうおそれがあります。なお、正規の確認サービスまで、すべてが詐欺というわけではありません。大切なのは、通知のリンクから飛んだ見知らぬサイトには入力しないことです。',
 choices:[
-{t:'ボタンからチェックサイトを開き、メールアドレスとパスワードを入力して確認する', ok:false, ax:[false,false,false], fb:'入力したメールアドレスとパスワードが、そのまま相手に渡ってしまいます。「漏れました」という通知自体が、だますための入り口になっていることがあります。'},
-{t:'パスワードは入れず、メールアドレスだけ入力して確認する', ok:false, ax:[false,false,false], fb:'メールアドレスだけでも、入力した情報は相手に渡ります。そのアドレスが、次の詐欺メールの宛先に使われるおそれがあります。'},
-{t:'通知のリンクは押さず、その場では調べない。心配なときは、自分で公式サイトや公式窓口を開いて確認する', ok:true, ax:[true,true,true], fb:'その通りです。すべての流出確認サービスが詐欺というわけではありませんが、メールやメッセージのリンクから飛んだ見知らぬサイトには、メールアドレスもパスワードも入力しないのが鉄則です。'}
+{t:'ボタンのサイトで、メールとパスワードを入れて調べる', ok:false, ax:[false,false,false], fb:'入力したメールアドレスとパスワードが、そのまま相手に渡ってしまいます。「漏れました」という通知自体が、だますための入り口になっていることがあります。'},
+{t:'パスワードは入れず、メールアドレスだけ入れて調べる', ok:false, ax:[false,false,false], fb:'メールアドレスだけでも、入力した情報は相手に渡ります。そのアドレスが、次の詐欺メールの宛先に使われるおそれがあります。'},
+{t:'使っているサービスの公式サイトを、自分で開いて確かめる', ok:true, ax:[true,true,true], fb:'その通りです。すべての流出確認サービスが詐欺というわけではありませんが、メールやメッセージのリンクから飛んだ見知らぬサイトには、メールアドレスもパスワードも入力しないのが鉄則です。'}
 ]},
 {tag:'便乗の手口 その7', subj:'会員情報流出のお詫びとご確認のお願い', from:'クラブツーリズム カスタマーセンター（名乗り）',
 note:'これは実際に確認された偽メールではありません。2026年10月31日にクラブツーリズムが発表した「インターネット会員（約432万件）の個人情報が、不正アクセスにより流出した可能性」をもとにした想定パターンです。件数や項目は報道によるもので、同社の一次発表文は直接未確認です。メールに出てくる氏名・住所などは、訓練用に作った架空のものです。なお、ログインパスワード・パスポート情報・クレジットカード情報・金融機関口座番号は、流出した情報に含まれていないとされています。',
 body:'○○ ○○ 様\n\n平素よりクラブツーリズムをご利用いただきありがとうございます。\nこのたび、弊社システムへの不正アクセスにより、インターネット会員のお客様の情報が外部に流出した可能性があることが判明いたしました。深くお詫び申し上げます。\n\n流出した可能性のある情報には、あなたのお名前（漢字・カナ）・国籍・性別・生年月日・年齢・ご住所・お電話番号・メールアドレス・会員ID・緊急連絡先が含まれます。\n\nお客様の安全確認のため、下のボタンからお手続きをお願いいたします。なお、弊社の公式サイトは現在停止中のため、お手続きはこのメールからのみ承っております。',
-link:'▶ 安全確認のお手続きはこちら（ボタンの見本・押せません）',
+buttons:['安全確認のお手続きはこちら'],
 point:'あなたの住所や緊急連絡先まで正しく書かれていても、本物の証拠にはなりません。漏れた本当の情報が、そのまま使われている場合があるからです。生年月日や国籍まで漏れた可能性があるため、生年月日が合っていることも本物の証拠にはなりません。また、緊急連絡先（ご家族）の情報まで漏れているため、家族を装う電話や連絡にも注意が要ります。同社は、電話・メール・SMS・郵便などのどの手段でも、クレジットカード番号、銀行口座情報、暗証番号、ID・パスワード、マイナンバーを尋ねることは一切ない、と呼びかけています。口座番号・IDやパスワード・マイナンバーを聞いてきた時点で、偽物と判断してよいです。',
 choices:[
-{t:'ボタンから手続きをして、カード番号や暗証番号を入力する', ok:false, ax:[false,false,false], fb:'同社は、電話・メール・SMS・郵便などのどの手段でも、クレジットカード番号、銀行口座情報、暗証番号、ID・パスワード、マイナンバーを尋ねることは一切ない、と公表しています。それらを求める手続きは、にせ物と考えてください。入力すると、その情報がそのまま盗まれてしまいます。'},
-{t:'メールはそのままにして、まず家族に相談する。公式からの連絡を待ち、サイトが再開したら、メールのリンクではなく自分で公式サイトを開いて確かめる', ok:true, ax:[true,true,true], fb:'その通りです。公式サイトが停止中でも、焦ってメールから手続きする必要はありません。家族に相談し、公式からの順次連絡を待ちましょう。再開したあとも、確認はメールの中からではなく、自分で開いた公式サイトで行います。'},
+{t:'ボタンから手続きをして、カード番号や暗証番号を入れる', ok:false, ax:[false,false,false], fb:'同社は、電話・メール・SMS・郵便などのどの手段でも、クレジットカード番号、銀行口座情報、暗証番号、ID・パスワード、マイナンバーを尋ねることは一切ない、と公表しています。それらを求める手続きは、にせ物と考えてください。入力すると、その情報がそのまま盗まれてしまいます。'},
+{t:'その場では何もせず、家族に相談して公式の連絡を待つ', ok:true, ax:[true,true,true], fb:'その通りです。公式サイトが停止中でも、焦ってメールから手続きする必要はありません。家族に相談し、公式からの順次連絡を待ちましょう。再開したあとも、確認はメールの中からではなく、自分で開いた公式サイトで行います。'},
 {t:'メールに書かれた電話番号にかけて、本物か確かめる', ok:false, ax:[true,true,false], fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。「サイトは停止中だから、このメールからだけ手続きできる」という言い方も、公式の場所で確かめる機会を奪うための手口です。'}
 ]}
 /* 事例8以降を追加する場合は、この下に要素を足してください。 */
@@ -265,7 +300,7 @@ scrTitle.appendChild(el('h2',null,'にせメールを見分ける練習をしま
 scrTitle.appendChild(el('p',null,'今日、あなたのメールボックスに <b>'+CASES.length+'件</b> のメールが届きました。その中には、情報流出のお詫びに便乗する「にせメール」がまぎれています。1件ずつ読んで、どうするのが安全かを選んでください。'));
 var disc=el('div','fb ng');
 disc.appendChild(el('h3',null,'これは訓練用のゲームです'));
-disc.appendChild(el('p',null,'ここに出てくるメールは、すべて<b>訓練用の想定パターン</b>です。実際に確認された詐欺メールではありません。実在の情報流出の発表をもとに、便乗する手口を再現したものです。メールの中のリンクらしき文字は、押せないようにしてあります。'));
+disc.appendChild(el('p',null,'ここに出てくるメールは、すべて<b>訓練用の想定パターン</b>です。実際に確認された詐欺メールではありません。実在の情報流出の発表をもとに、便乗する手口を再現したものです。メールの中のボタンは見た目だけの見本で、押しても何も起きません。'));
 scrTitle.appendChild(disc);
 var start=el('button','bigbtn','ゲームをはじめる'); start.type='button';
 start.onclick=function(){ idx=0; correct=0; axes=[0,0,0]; renderCase(); showScreen('game');};
@@ -281,27 +316,48 @@ pr.appendChild(el('span',null,'事例 '+(idx+1)+' 件目 ／ 全'+CASES.length+'
 var bar=el('div','bar'); var fill=el('i'); fill.style.width=(idx/CASES.length*100)+'%'; bar.appendChild(fill); pr.appendChild(bar);
 scrGame.appendChild(pr);
 scrGame.appendChild(el('span','tag',esc(c.tag)+'（訓練用）'));
-if(c.note) scrGame.appendChild(el('p','hint',esc(c.note)));
+/* 事例の説明（note）は、答えを選んだあとのフィードバック欄に出す（先に見えるとネタばらしになるため） */
 var mail=el('div','mail');
 mail.appendChild(el('p','subj',esc(c.subj)));
 mail.appendChild(el('p','from','送り主：'+esc(c.from)));
 var bd=el('p'); bd.innerHTML=esc(c.body).replace(/\n/g,'<br>'); mail.appendChild(bd);
-mail.appendChild(el('p','lk',esc(c.link)));
+
+/* メールの中のボタン（見た目だけ。押しても何も起きない） */
+var row=el('div','btnrow');
+(c.buttons||[]).forEach(function(label){
+var fb=el('span','fakebtn');
+fb.textContent=label;
+fb.setAttribute('role','img');
+fb.setAttribute('aria-label','メールの中のボタンの見本：'+label+'（押せません）');
+row.appendChild(fb);
+});
+mail.appendChild(row);
+mail.appendChild(el('p','btnnote','※ 上のボタンは訓練用の見本です。押しても何も起きません。'));
 scrGame.appendChild(mail);
+
 scrGame.appendChild(el('p','q','このメールが届いたら、どうするのが安全ですか？'));
-var box=el('div','answers'); box.setAttribute('role','group');
-c.choices.forEach(function(ch){
+var box=el('div','answers'); box.setAttribute('role','group'); box.setAttribute('aria-label','答えの選択肢');
+/* 答えの並びは毎回ランダム（正解の位置を覚えて当てられないように） */
+shuffled(c.choices).forEach(function(ch){
 var b=el('button'); b.type='button'; b.textContent=ch.t;
+b._choice=ch; /* 回答後に「どれが正解か」を示すため、選択肢のデータを覚えさせておく */
 b.onclick=function(){ answerCase(ch,box);};
 box.appendChild(b);
 });
 scrGame.appendChild(box);
-var fbSlot=el('div'); fbSlot.id='case-fb'; scrGame.appendChild(fbSlot);
+var fbSlot=el('div'); fbSlot.id='case-fb'; fbSlot.setAttribute('aria-live','polite'); scrGame.appendChild(fbSlot);
 }
 
 function answerCase(ch,box){
 var btns=box.querySelectorAll('button');
-for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+for(var i=0;i<btns.length;i++){
+var b=btns[i], bc=b._choice, picked=(bc===ch), mark=null;
+b.disabled=true;
+/* 正解の選択肢と、自分が選んだ選択肢に印を付ける */
+if(bc.ok){ b.classList.add('is-correct'); mark=picked?'○ あなたの選択（正解）':'○ 正解はこちら'; }
+else if(picked){ b.classList.add('is-wrong'); mark='× あなたの選択'; }
+if(mark){ b.innerHTML='<span class="mark">'+mark+'</span>'+esc(bc.t); }
+}
 if(ch.ok) correct++;
 for(var a=0;a<3;a++) if(ch.ax[a]) axes[a]++;
 var slot=document.getElementById('case-fb');
@@ -310,6 +366,7 @@ fb.appendChild(el('h3',null,ch.ok?'○ 安全な行動です':'× それは危�
 fb.appendChild(el('p',null,esc(ch.fb)));
 var c=CASES[idx];
 fb.appendChild(el('p',null,'<b>手口のポイント：</b>'+esc(c.point)));
+if(c.note) fb.appendChild(el('p','note','<b>この事例について：</b>'+esc(c.note)));
 slot.appendChild(fb);
 var last=(idx===CASES.length-1);
 var nx=el('button','restart',last?'結果を見る':'次の事例へ'); nx.type='button';
