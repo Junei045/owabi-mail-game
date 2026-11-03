@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>お詫びメール見分けゲーム</title>
+<style>
+/* お詫びメール見分けゲーム
+owabi-check（お詫びメール見分けチェック）と同じ配色・文字サイズで作っています。
+外部のフォントや画像は読み込まず、このファイル1つで動きます。 */
+:root{
+color-scheme:light;
+--bg:#EEF2F2; --surface:#FFFFFF; --ink:#18262D; --muted:#3F5058; --line:#BFCBCE;
+--accent:#0D6670; --accent-ink:#FFFFFF; --accent-soft:#DDEEEF;
+--danger:#B1231B; --danger-bg:#FCE8E6;
+--warn:#7D5200; --warn-bg:#FFF1CF;
+--info:#1C557F; --info-bg:#E3EEF6;
+--f-display:"Hiragino Maru Gothic ProN","Zen Maru Gothic","BIZ UDPGothic",sans-serif;
+--f-body:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+--base:20px;
+}
+@media (prefers-color-scheme: dark){
+:root:not([data-theme="light"]){
+--bg:#10181B; --surface:#192328; --ink:#EEF3F4; --muted:#B7C4C8; --line:#34434A;
+--accent:#5EC3CB; --accent-ink:#08191C; --accent-soft:#183238;
+--danger:#FF8C82; --danger-bg:#3A1613;
+--warn:#F1C25A; --warn-bg:#33260A;
+--info:#8DC4EC; --info-bg:#132838;
+color-scheme:dark;
+}
+}
+:root[data-theme="dark"]{
+--bg:#10181B; --surface:#192328; --ink:#EEF3F4; --muted:#B7C4C8; --line:#34434A;
+--accent:#5EC3CB; --accent-ink:#08191C; --accent-soft:#183238;
+--danger:#FF8C82; --danger-bg:#3A1613;
+--warn:#F1C25A; --warn-bg:#33260A;
+--info:#8DC4EC; --info-bg:#132838;
+color-scheme:dark;
+}
+html.big{ --base:24px;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:var(--base);line-height:1.75;}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.4}
+h1{font-size:1.6em;font-weight:900}
+h2{font-size:1.3em}
+h3{font-size:1.1em}
+p{margin:0}
+[hidden]{display:none!important}
+
+.top{display:flex;flex-direction:column;gap:8px}
+.top.lead{color:var(--muted)}
+.size{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85em;color:var(--muted)}
+.size button{font:inherit;font-weight:700;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.size button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+
+.rule{background:var(--danger-bg);border:3px solid var(--danger);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.rule strong{color:var(--danger);font-family:var(--f-display);font-size:1.15em}
+
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:22px 18px;display:flex;flex-direction:column;gap:18px}
+.progress{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.bar{flex:1;height:10px;border-radius:5px;background:var(--accent-soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width.25s}
+.q{font-family:var(--f-display);font-size:1.3em;font-weight:700;line-height:1.55}
+.hint{color:var(--muted);font-size:.9em}
+.answers{display:flex;flex-direction:column;gap:12px}
+.answers button{font:inherit;font-weight:700;font-size:1.15em;min-height:68px;border-radius:14px;cursor:pointer;border:3px solid var(--accent);background:var(--surface);color:var(--ink);padding:10px 14px}
+.answers button:disabled{opacity:.55;cursor:default}
+.bigbtn{font:inherit;font-weight:700;font-size:1.15em;min-height:68px;border-radius:14px;cursor:pointer;border:3px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:10px 18px}
+.restart{font:inherit;font-weight:700;min-height:60px;border-radius:14px;border:3px solid var(--accent);background:var(--surface);color:var(--ink);cursor:pointer;padding:8px 16px}
+
+.verdict{border-radius:14px;padding:18px;border:3px solid;display:flex;flex-direction:column;gap:8px}
+.verdict.red{background:var(--danger-bg);border-color:var(--danger)}
+.verdict.red h2{color:var(--danger)}
+.verdict.amber{background:var(--warn-bg);border-color:var(--warn)}
+.verdict.amber h2{color:var(--warn)}
+.verdict.blue{background:var(--info-bg);border-color:var(--info)}
+.verdict.blue h2{color:var(--info)}
+.steps{margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:10px}
+.steps li::marker{font-weight:700;color:var(--accent)}
+
+.mail{border:2px solid var(--line);border-radius:12px;padding:14px 16px;background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.mail.subj{font-weight:700;font-family:var(--f-display);font-size:1.05em}
+.mail.from{font-size:.85em;color:var(--muted)}
+.mail.lk{color:var(--info);text-decoration:underline;overflow-wrap:anywhere}
+.tag{display:inline-block;font-size:.8em;font-weight:700;background:var(--warn-bg);color:var(--warn);border-radius:999px;padding:2px 12px;align-self:flex-start}
+.fb{border-radius:12px;padding:14px 16px;border:3px solid;display:flex;flex-direction:column;gap:8px}
+.fb.ok{background:var(--info-bg);border-color:var(--info)}
+.fb.ng{background:var(--danger-bg);border-color:var(--danger)}
+.note{font-size:.85em;color:var(--muted)}
+
+.axis{display:flex;flex-direction:column;gap:6px}
+.axis.ahead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.axis.aname{font-weight:700}
+.axis.acount{font-family:var(--f-display);font-size:1.3em;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pillars{margin:0;padding-left:1.5em;display:flex;flex-direction:column;gap:12px}
+.pillars li::marker{font-weight:700;color:var(--accent)}
+footer{font-size:.8em;color:var(--muted);text-align:center}
+
+:focus-visible{outline:4px solid var(--warn);outline-offset:3px}
+@media (prefers-reduced-motion: reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+"use strict";
+
+function el(tag,cls,html){
+var e=document.createElement(tag);
+if(cls) e.className=cls;
+if(html!=null) e.innerHTML=html;
+return e;
+}
+function esc(s){
+return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});
+}
+
+var app=document.getElementById('app');
+var root=document.documentElement;
+
+/* ---------- 画面の骨組み ---------- */
+var header=el('header','top');
+header.appendChild(el('h1',null,'お詫びメール見分けゲーム'));
+header.appendChild(el('p','lead','「個人情報が流出しました」というお詫びメール。本物をまねた<b>にせメール</b>も届いています。メールが届いたつもりで読んで、「どうするのが安全か」を選ぶ練習ゲームです。'));
+var sizeBox=el('div','size'); sizeBox.setAttribute('role','group'); sizeBox.setAttribute('aria-label','文字の大きさ');
+sizeBox.appendChild(el('span',null,'文字の大きさ'));
+var szN=el('button',null,'ふつう'); szN.type='button'; szN.setAttribute('aria-pressed','true');
+var szB=el('button',null,'大きく'); szB.type='button'; szB.setAttribute('aria-pressed','false');
+sizeBox.appendChild(szN); sizeBox.appendChild(szB);
+header.appendChild(sizeBox);
+app.appendChild(header);
+
+var rule=el('div','rule');
+rule.appendChild(el('strong',null,'まず、これだけは守りましょう'));
+rule.appendChild(el('p',null,'メールの中のボタンやリンク（青い文字）は<b>押さない</b>。メールに書かれた電話番号にも<b>かけない</b>。'));
+app.appendChild(rule);
+
+var scrTitle=el('section','panel'); app.appendChild(scrTitle);
+var scrGame=el('section','panel'); scrGame.hidden=true; app.appendChild(scrGame);
+var scrResult=el('section','panel'); scrResult.hidden=true; app.appendChild(scrResult);
+
+var footer=el('footer',null,'このゲームは訓練用です。本物のメールかどうか迷ったら、メールのリンクを使わず、自分で開いた公式ホームページや公式アプリで確認してください。');
+app.appendChild(footer);
+
+/* ---------- 文字サイズ（owabi-checkと同じ操作） ---------- */
+function setSize(big){
+root.classList.toggle('big',big);
+szN.setAttribute('aria-pressed',String(!big)); szB.setAttribute('aria-pressed',String(big));
+try{localStorage.setItem('owabi-big',big?'1':'0')}catch(e){}
+}
+try{ if(localStorage.getItem('owabi-big')==='1') setSize(true);}catch(e){}
+szN.onclick=function(){setSize(false);};
+szB.onclick=function(){setSize(true);};
+
+/* ============================================================
+事例データ
+事例を増やすときは、この配列に1要素を足すだけです。
+件数表示（全○件）・進行表示・採点の集計は、配列の長さに
+自動で追従します。
+
+choices の ax は、採点3軸の内訳です。左から
+[0] 危険に気づけたか
+[1] リンクを踏まずに止まれたか
+[2] 安全な次の行動を選べたか
+正解の選択肢は3つとも true。不正解でも、リンクを押さずに
+立ち止まった選択肢（返信して聞く／メールの中の番号にかける等）は
+[0][1] だけ true にし、危ない行動（リンク先で入力する等）は
+すべて false にしています。
+============================================================ */
+var CASES=[
+{tag:'便乗の手口 その1', subj:'【重要】パスワード再設定のお願い', from:'○○サービス サポート（名乗り）',
+body:'いつもご利用いただきありがとうございます。\n先日の個人情報流出の件で、セキュリティ強化のため、パスワードの再設定をお願いしております。\n24時間以内に再設定しないと、アカウントが利用できなくなります。\n下のボタンからログインして、再設定してください。',
+link:'▶ パスワードを再設定する（ボタンの見本・押せません）',
+point:'急がせる言葉と、ログインの求めがあったら、まず疑います。本当に必要なら、公式アプリや公式ホームページにもお知らせが出ているはずです。',
+choices:[
+{t:'ボタンからログインして、パスワードを再設定する', ok:false, ax:[false,false,false], fb:'メールの中のボタンからログインさせるのは、パスワードを盗むための手口です。「24時間以内」と急がせるのも、決まったやり方です。'},
+{t:'ボタンは押さず、自分で公式ホームページや公式アプリを開いて確かめる', ok:true, ax:[true,true,true], fb:'その通りです。再設定が必要かどうかは、メールの中からではなく、自分で開いた公式の場所で確かめます。'},
+{t:'心配なので、メールに返信して本物か聞く', ok:false, ax:[true,true,false], fb:'にせメールに返信しても、本物かどうかは分かりません。返信先も詐欺グループにつながっていることがあります。'}
+]},
+{tag:'便乗の手口 その2', subj:'お詫びとして防災セットを無償でお届けします', from:'○○ストア お客様窓口（名乗り）',
+body:'このたびの情報流出では、ご迷惑をおかけし申し訳ございません。\nお詫びとして、防災セットを無償でお届けします。\n送料500円のみご負担ください。下のページで、送り先とカード情報をご入力ください。',
+link:'▶ お届け先とカード情報を入力する（ページの見本・押せません）',
+point:'お金がらみの話（無償・返金・送料）で個人情報やカード情報を求められたら、にせメールを疑います。',
+choices:[
+{t:'送料500円だけならと、カード情報を入力する', ok:false, ax:[false,false,false], fb:'「無償」「送料だけ」で油断させて、カード情報を盗む手口です。金額が小さくても、カード情報そのものが狙われています。'},
+{t:'入力せず、そのまま閉じる。気になる場合は会社の公式ホームページで確かめる', ok:true, ax:[true,true,true], fb:'その通りです。本物のお詫びメールが、メールからカード情報を入力させることはまずありません。'},
+{t:'送り先の住所と電話番号だけ入力する', ok:false, ax:[false,false,false], fb:'住所や電話番号も大切な個人情報です。メール経由のフォームには、個人情報を入れないのが鉄則です。'}
+]},
+{tag:'便乗の手口 その3', subj:'登録情報の確認のお願い', from:'○○サービス 事務局（名乗り）',
+body:'情報流出への対応として、登録情報が正しいか確認をお願いしております。\n下のフォームで、お名前・ご住所・お電話番号をご確認のうえ、送信してください。\n確認が済んでいないお客様は、サービスのご利用を制限する場合がございます。',
+link:'▶ 登録情報を確認する（フォームの見本・押せません）',
+point:'「確認のため」と言われても、メール経由で個人情報を出さないこと。電話をするときも、メールの中の番号は使いません。',
+choices:[
+{t:'フォームに住所や電話番号を入力して送信する', ok:false, ax:[false,false,false], fb:'流出の「確認」に見せかけて、住所や電話番号を集める手口です。集めた情報は、次の詐欺に使われるおそれがあります。'},
+{t:'フォームは使わず、自分で公式ホームページを開いて、同じお知らせがあるか確かめる', ok:true, ax:[true,true,true], fb:'その通りです。確認が必要なら、メール経由ではなく、自分で開いた公式の場所から行います。'},
+{t:'メールに書かれた電話番号にかけて確かめる', ok:false, ax:[true,true,false], fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、カードの裏や請求書など、いつもの番号でかけます。'}
+]},
+{tag:'便乗の手口 その4', subj:'予約情報の確認とお詫びのお知らせ', from:'日本航空 カスタマーサポート（名乗り）',
+note:'これは実際に確認された偽メールではありません。2026年10月にJALが発表した「予約情報が外部から見られた可能性」と、その注意喚起をもとにした想定パターンです。メールに出てくる予約内容は、訓練用に作った架空のものです。',
+body:'○○ ○○ 様\n\nいつもご利用いただきありがとうございます。\nこのたび、弊社の旅客サービスシステムへの不正アクセスにより、お客様のご予約情報が外部から見られた可能性があることが判明いたしました。深くお詫び申し上げます。\n\n【お客様のご予約】\n予約番号：ABC123\n搭乗日：11月15日\n搭乗区間：東京（羽田）→ 福岡\n\nお客様のご予約に間違いがないか、下のボタンからご確認ください。ご都合が変わった場合は「返金手続きはこちら」からお手続きいただけます。',
+link:'▶ 予約の確認はこちら／返金手続きはこちら（ボタンの見本・押せません）',
+point:'メールに書かれた予約番号や搭乗日が正しくても、本物の証拠にはなりません。流出した本当の予約情報が、そのまま使われている場合があるからです。確認は、メールの中のリンクや電話番号を使わず、自分で公式の場所へ行くのが鉄則です。',
+choices:[
+{t:'ボタン（リンク）を押して、予約を確認する', ok:false, ax:[false,false,false], fb:'このメールは、流出した本当の予約情報を使って作られているかもしれません。予約内容が正しく書かれていても、本物だという証拠にはなりません。ボタンから入ると、にせのページでログイン情報などを盗まれるおそれがあります。'},
+{t:'メールに書かれた電話番号に問い合わせる', ok:false, ax:[true,true,false], fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。問い合わせは、公式ホームページや予約の控えなど、いつもの連絡先で行います。'},
+{t:'リンクを押さず、JALの公式アプリや、自分でブックマークした公式サイトから予約を確認する', ok:true, ax:[true,true,true], fb:'その通りです。予約の確認は、メールの中からではなく、自分で開いた公式アプリや公式ホームページから行います。内容が正しく書かれたメールほど、本物らしく見えるので注意が必要です。'}
+]},
+{tag:'便乗の手口 その5', subj:'MUJIアプリに関するお詫びとご登録情報の確認のお願い', from:'無印良品（MUJI）お客様センター（名乗り）',
+note:'これは実際に確認された偽メールではありません。2026年10月に良品計画が発表した「MUJIアプリへの不正アクセスで、メールアドレス・生年月日・性別が最大約2,726万件漏れた可能性」をもとにした想定パターンです。漏れたかどうかは確定ではなく、あくまで可能性の発表です。',
+body:'いつも無印良品をご利用いただきありがとうございます。\nこのたび、公式アプリ「MUJIアプリ」への不正アクセスにより、お客様のメールアドレス・生年月日・性別が外部に漏れた可能性のあることが判明いたしました。深くお詫び申し上げます。\n\nつきましては、ご本人様確認のため、ご登録情報の確認をお願いしております。下のボタンから、ご氏名・ご住所・クレジットカード情報をご入力ください。',
+link:'▶ 登録情報の確認はこちら（ボタンの見本・押せません）',
+point:'今回、漏れた可能性があると発表されたのは、メールアドレス・生年月日・性別だけです。漏れていないはずの氏名・住所・クレジットカード情報を求めること自体が、見抜く手がかりになります。生年月日など、漏れた情報が合っていても、本物の証拠にはなりません。',
+choices:[
+{t:'ボタンから、氏名・住所・クレジットカード情報を入力する', ok:false, ax:[false,false,false], fb:'発表で漏れた可能性があるとされたのは、メールアドレス・生年月日・性別だけです。漏れていないはずの氏名・住所・カード情報を求めること自体がおかしいのです。入力すると、その情報がそのまま盗まれてしまいます。'},
+{t:'ボタンは押さず、公式アプリ「MUJIアプリ」や公式ホームページを自分で開いて確かめる', ok:true, ax:[true,true,true], fb:'その通りです。確認が必要かどうかは、メールの中からではなく、自分で開いた公式アプリや公式ホームページで確かめます。'},
+{t:'心配なので、メールに返信して本物か聞く', ok:false, ax:[true,true,false], fb:'にせメールに返信しても、本物かどうかは分かりません。返信先も詐欺グループにつながっていることがあります。'}
+]},
+{tag:'便乗の手口 その6', subj:'【緊急】あなたの情報がダークウェブに漏洩しました', from:'情報漏洩監視センター（名乗り）',
+note:'これは実際に確認された偽メールではありません。「流出したか調べるサイト自体が、詐欺の入り口になる」という警告をもとにした想定パターンです。',
+body:'あなたのメールアドレスとパスワードが、ダークウェブ上に漏洩していることが確認されました。\nこのまま放置すると、アカウントを悪用されるおそれがあります。\n下のボタンから、あなたの情報が漏れているか、今すぐ無料で確認できます。確認には、メールアドレスとパスワードの入力が必要です。',
+link:'▶ 漏洩しているか今すぐ確認する（ボタンの見本・押せません）',
+point:'「調べる」行為そのものが、入口になります。見知らぬサイトにメールアドレスやパスワードを入力すると、その瞬間に自分から情報を渡してしまうおそれがあります。なお、正規の確認サービスまで、すべてが詐欺というわけではありません。大切なのは、通知のリンクから飛んだ見知らぬサイトには入力しないことです。',
+choices:[
+{t:'ボタンからチェックサイトを開き、メールアドレスとパスワードを入力して確認する', ok:false, ax:[false,false,false], fb:'入力したメールアドレスとパスワードが、そのまま相手に渡ってしまいます。「漏れました」という通知自体が、だますための入り口になっていることがあります。'},
+{t:'パスワードは入れず、メールアドレスだけ入力して確認する', ok:false, ax:[false,false,false], fb:'メールアドレスだけでも、入力した情報は相手に渡ります。そのアドレスが、次の詐欺メールの宛先に使われるおそれがあります。'},
+{t:'通知のリンクは押さず、その場では調べない。心配なときは、自分で公式サイトや公式窓口を開いて確認する', ok:true, ax:[true,true,true], fb:'その通りです。すべての流出確認サービスが詐欺というわけではありませんが、メールやメッセージのリンクから飛んだ見知らぬサイトには、メールアドレスもパスワードも入力しないのが鉄則です。'}
+]},
+{tag:'便乗の手口 その7', subj:'会員情報流出のお詫びとご確認のお願い', from:'クラブツーリズム カスタマーセンター（名乗り）',
+note:'これは実際に確認された偽メールではありません。2026年10月31日にクラブツーリズムが発表した「インターネット会員（約432万件）の個人情報が、不正アクセスにより流出した可能性」をもとにした想定パターンです。件数や項目は報道によるもので、同社の一次発表文は直接未確認です。メールに出てくる氏名・住所などは、訓練用に作った架空のものです。なお、ログインパスワード・パスポート情報・クレジットカード情報・金融機関口座番号は、流出した情報に含まれていないとされています。',
+body:'○○ ○○ 様\n\n平素よりクラブツーリズムをご利用いただきありがとうございます。\nこのたび、弊社システムへの不正アクセスにより、インターネット会員のお客様の情報が外部に流出した可能性があることが判明いたしました。深くお詫び申し上げます。\n\n流出した可能性のある情報には、あなたのお名前（漢字・カナ）・国籍・性別・生年月日・年齢・ご住所・お電話番号・メールアドレス・会員ID・緊急連絡先が含まれます。\n\nお客様の安全確認のため、下のボタンからお手続きをお願いいたします。なお、弊社の公式サイトは現在停止中のため、お手続きはこのメールからのみ承っております。',
+link:'▶ 安全確認のお手続きはこちら（ボタンの見本・押せません）',
+point:'あなたの住所や緊急連絡先まで正しく書かれていても、本物の証拠にはなりません。漏れた本当の情報が、そのまま使われている場合があるからです。生年月日や国籍まで漏れた可能性があるため、生年月日が合っていることも本物の証拠にはなりません。また、緊急連絡先（ご家族）の情報まで漏れているため、家族を装う電話や連絡にも注意が要ります。同社は、電話・メール・SMS・郵便などのどの手段でも、クレジットカード番号、銀行口座情報、暗証番号、ID・パスワード、マイナンバーを尋ねることは一切ない、と呼びかけています。口座番号・IDやパスワード・マイナンバーを聞いてきた時点で、偽物と判断してよいです。',
+choices:[
+{t:'ボタンから手続きをして、カード番号や暗証番号を入力する', ok:false, ax:[false,false,false], fb:'同社は、電話・メール・SMS・郵便などのどの手段でも、クレジットカード番号、銀行口座情報、暗証番号、ID・パスワード、マイナンバーを尋ねることは一切ない、と公表しています。それらを求める手続きは、にせ物と考えてください。入力すると、その情報がそのまま盗まれてしまいます。'},
+{t:'メールはそのままにして、まず家族に相談する。公式からの連絡を待ち、サイトが再開したら、メールのリンクではなく自分で公式サイトを開いて確かめる', ok:true, ax:[true,true,true], fb:'その通りです。公式サイトが停止中でも、焦ってメールから手続きする必要はありません。家族に相談し、公式からの順次連絡を待ちましょう。再開したあとも、確認はメールの中からではなく、自分で開いた公式サイトで行います。'},
+{t:'メールに書かれた電話番号にかけて、本物か確かめる', ok:false, ax:[true,true,false], fb:'メールに書かれた電話番号は、詐欺グループにつながっていることがあります。「サイトは停止中だから、このメールからだけ手続きできる」という言い方も、公式の場所で確かめる機会を奪うための手口です。'}
+]}
+/* 事例8以降を追加する場合は、この下に要素を足してください。 */
+];
+
+/* ---------- 状態 ---------- */
+var idx=0, correct=0, axes=[0,0,0];
+var AXIS_NAMES=['危険に気づけたか','リンクを踏まずに止まれたか','安全な次の行動を選べたか'];
+
+function showScreen(which){
+scrTitle.hidden = which!=='title';
+scrGame.hidden = which!=='game';
+scrResult.hidden= which!=='result';
+window.scrollTo(0,0);
+}
+
+/* ---------- タイトル画面 ---------- */
+function renderTitle(){
+scrTitle.innerHTML='';
+scrTitle.appendChild(el('h2',null,'にせメールを見分ける練習をしましょう'));
+scrTitle.appendChild(el('p',null,'今日、あなたのメールボックスに <b>'+CASES.length+'件</b> のメールが届きました。その中には、情報流出のお詫びに便乗する「にせメール」がまぎれています。1件ずつ読んで、どうするのが安全かを選んでください。'));
+var disc=el('div','fb ng');
+disc.appendChild(el('h3',null,'これは訓練用のゲームです'));
+disc.appendChild(el('p',null,'ここに出てくるメールは、すべて<b>訓練用の想定パターン</b>です。実際に確認された詐欺メールではありません。実在の情報流出の発表をもとに、便乗する手口を再現したものです。メールの中のリンクらしき文字は、押せないようにしてあります。'));
+scrTitle.appendChild(disc);
+var start=el('button','bigbtn','ゲームをはじめる'); start.type='button';
+start.onclick=function(){ idx=0; correct=0; axes=[0,0,0]; renderCase(); showScreen('game');};
+scrTitle.appendChild(start);
+}
+
+/* ---------- 事例画面 ---------- */
+function renderCase(){
+var c=CASES[idx];
+scrGame.innerHTML='';
+var pr=el('div','progress');
+pr.appendChild(el('span',null,'事例 '+(idx+1)+' 件目 ／ 全'+CASES.length+'件'));
+var bar=el('div','bar'); var fill=el('i'); fill.style.width=(idx/CASES.length*100)+'%'; bar.appendChild(fill); pr.appendChild(bar);
+scrGame.appendChild(pr);
+scrGame.appendChild(el('span','tag',esc(c.tag)+'（訓練用）'));
+if(c.note) scrGame.appendChild(el('p','hint',esc(c.note)));
+var mail=el('div','mail');
+mail.appendChild(el('p','subj',esc(c.subj)));
+mail.appendChild(el('p','from','送り主：'+esc(c.from)));
+var bd=el('p'); bd.innerHTML=esc(c.body).replace(/\n/g,'<br>'); mail.appendChild(bd);
+mail.appendChild(el('p','lk',esc(c.link)));
+scrGame.appendChild(mail);
+scrGame.appendChild(el('p','q','このメールが届いたら、どうするのが安全ですか？'));
+var box=el('div','answers'); box.setAttribute('role','group');
+c.choices.forEach(function(ch){
+var b=el('button'); b.type='button'; b.textContent=ch.t;
+b.onclick=function(){ answerCase(ch,box);};
+box.appendChild(b);
+});
+scrGame.appendChild(box);
+var fbSlot=el('div'); fbSlot.id='case-fb'; scrGame.appendChild(fbSlot);
+}
+
+function answerCase(ch,box){
+var btns=box.querySelectorAll('button');
+for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+if(ch.ok) correct++;
+for(var a=0;a<3;a++) if(ch.ax[a]) axes[a]++;
+var slot=document.getElementById('case-fb');
+var fb=el('div','fb '+(ch.ok?'ok':'ng'));
+fb.appendChild(el('h3',null,ch.ok?'○ 安全な行動です':'× それは危ない行動です'));
+fb.appendChild(el('p',null,esc(ch.fb)));
+var c=CASES[idx];
+fb.appendChild(el('p',null,'<b>手口のポイント：</b>'+esc(c.point)));
+slot.appendChild(fb);
+var last=(idx===CASES.length-1);
+var nx=el('button','restart',last?'結果を見る':'次の事例へ'); nx.type='button';
+nx.onclick=function(){
+if(last){ renderResult(); showScreen('result');}
+else { idx++; renderCase(); scrGame.scrollIntoView({block:'start'});}
+};
+slot.appendChild(nx);
+slot.scrollIntoView({block:'nearest'});
+}
+
+/* ---------- まとめ画面 ---------- */
+function renderResult(){
+scrResult.innerHTML='';
+var n=CASES.length, v;
+if(correct===n){
+v=el('div','verdict blue');
+v.appendChild(el('h2',null,n+'問とも、安全な行動が選べました'));
+v.appendChild(el('p',null,'本物の便乗メールが来ても、この調子なら大丈夫です。家族にも教えてあげてください。'));
+}else if(correct===n-1){
+v=el('div','verdict amber');
+v.appendChild(el('h2',null,n+'問中 '+(n-1)+'問、正解です'));
+v.appendChild(el('p',null,'あと少しです。下の3つの約束を覚えておきましょう。'));
+}else{
+v=el('div','verdict red');
+v.appendChild(el('h2',null,n+'問中 '+correct+'問、正解です'));
+v.appendChild(el('p',null,'便乗メールは、本物そっくりに作られています。下の3つの約束を覚えて、もう一度練習してみましょう。'));
+}
+scrResult.appendChild(v);
+
+scrResult.appendChild(el('h3',null,'あなたの結果（3つの力）'));
+for(var a=0;a<3;a++){
+var ax=el('div','axis');
+var head=el('div','ahead');
+head.appendChild(el('span','aname',(a+1)+'. '+AXIS_NAMES[a]));
+head.appendChild(el('span','acount',axes[a]+' ／ '+n+'件'));
+ax.appendChild(head);
+var bar=el('div','bar'); var fill=el('i'); fill.style.width=(n?axes[a]/n*100:0)+'%'; bar.appendChild(fill); ax.appendChild(bar);
+scrResult.appendChild(ax);
+}
+scrResult.appendChild(el('p','note','リンクは踏まなかったけれど、安全ではない行動（返信する、メールの中の番号にかけるなど）を選んだ場合は、「気づけたか」と「止まれたか」だけ数えています。'));
+
+scrResult.appendChild(el('h3',null,'覚えておきたい3つのこと'));
+var pil=el('ol','pillars');
+[
+'<b>本当の内容が書かれていても、本物の証拠にならない</b> ― 漏れた本当の情報を使って、本物らしく作られていることがあるからです。',
+'<b>漏れていないはずの情報を求めること自体が、手がかりになる</b> ― 「何が漏れたか」の発表と、メールが求めてくる情報を比べてみましょう。',
+'<b>「調べる・確認する」行為自体が、入口になることがある</b> ― 確かめるときは、通知のリンクからではなく、自分で開いた公式の場所で確かめます。'
+].forEach(function(t){ pil.appendChild(el('li',null,t));});
+scrResult.appendChild(pil);
+
+scrResult.appendChild(el('h3',null,'便乗メールへの3つの約束'));
+var ol=el('ol','steps');
+['メールの中のリンクやボタンは押さない。返信もしない。',
+'手続きや確認は、自分で開いた公式ホームページや公式アプリから行う。',
+'問い合わせは、カードの裏や請求書など、いつもの電話番号で。メールの中の番号は使わない。'
+].forEach(function(t){ ol.appendChild(el('li',null,t));});
+scrResult.appendChild(ol);
+
+var again=el('button','restart','もう一度遊ぶ'); again.type='button';
+again.onclick=function(){ idx=0; correct=0; axes=[0,0,0]; renderCase(); showScreen('game');};
+scrResult.appendChild(again);
+}
+
+renderTitle();
+})();
+</script>
+</body>
+</html>
